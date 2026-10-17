@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Análise de Crédito SPC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef1f4;--sf:#fff;--ink:#14323f;--mut:#5d7480;--ln:#d3dce2;--ac:#14323f;--ok:#1f7a4d;--okb:#e1f3e9;--no:#b3382c;--nob:#fae5e2;--pe:#9a6a0b;--peb:#fbf0d6;--fc:#2a6fdb}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10181d;--sf:#18242b;--ink:#e6eef2;--mut:#93a8b2;--ln:#2b3c45;--ac:#6fb3cf;--ok:#5fcf97;--okb:#173a2a;--no:#ff8a7b;--nob:#40201c;--pe:#e8b84f;--peb:#3a2e12;--fc:#7fb0ff}}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{background:var(--ac);color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) header{color:#10181d}}
+header h1{font-size:18px;margin:0;font-weight:600;flex:1}
+header label{font-size:13px;display:flex;gap:6px;align-items:center}
+header input{padding:6px 8px;border:0;border-radius:4px;width:150px}
+nav{display:flex;gap:4px;padding:10px 12px 0;overflow-x:auto;border-bottom:1px solid var(--ln);background:var(--sf)}
+nav button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--ac);font-weight:600}
+main{max-width:980px;margin:0 auto;padding:16px;overflow-x:hidden}
+section{display:none}section.on{display:block}
+.box{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:16px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 12px}
+.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--ln);border-radius:4px;padding:8px;width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--fc);outline-offset:1px}
+button.b{background:var(--ac);color:#fff;border:0;border-radius:4px;padding:9px 14px;font:inherit;font-weight:500;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) button.b{color:#10181d}}
+button.b.s{background:transparent;color:var(--ink);border:1px solid var(--ln)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.cat{border:1px solid var(--ln);border-radius:6px;padding:12px;margin-bottom:10px}
+.cat h3{margin:0 0 8px;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.tag{font-size:12px;padding:2px 8px;border-radius:10px;font-weight:600}
+.t-ok{background:var(--okb);color:var(--ok)}.t-no{background:var(--nob);color:var(--no)}.t-pe{background:var(--peb);color:var(--pe)}
+.hint{font-size:12px;color:var(--mut);margin-top:6px}
+.res{border-left:6px solid var(--pe);background:var(--peb)}.res.ok{border-color:var(--ok);background:var(--okb)}.res.no{border-color:var(--no);background:var(--nob)}
+.res ul{margin:6px 0 0;padding-left:18px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--ln);white-space:nowrap}
+th{color:var(--mut);font-weight:500;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.empty{color:var(--mut);padding:16px 0}
+dialog{border:1px solid var(--ln);border-radius:6px;padding:0;max-width:min(720px,94vw);width:100%;background:var(--sf);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#rcp{padding:24px;font-size:14px}
+#rcp h2{font-size:20px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+#rcp table td:first-child{color:var(--mut);width:42%;white-space:normal}#rcp td{white-space:normal}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;display:none;z-index:99;max-width:90vw}
+@media print{body>*:not(dialog){display:none!important}dialog{border:0;max-width:none;position:static}.noprint{display:none!important}:root{--ink:#000;--sf:#fff;--mut:#444;--ln:#bbb}}
+</style>
+</head>
+<body>
+<header><h1>Análise de Crédito — SPC</h1>
+<label>Responsável <input id="resp" placeholder="Seu nome" autocomplete="name"></label></header>
+<nav id="nav"><button class="on" data-t="nova">Nova pesquisa</button><button data-t="hist">Histórico</button><button data-t="users">Usuários</button></nav>
+<main>
+<section id="nova" class="on">
+<div class="box"><h2>1. Pesquisa original</h2>
+<div class="g"><label class="f">Arquivo (PDF ou imagem)<input type="file" id="arq" accept="application/pdf,image/*"></label>
+<label class="f">Data da consulta SPC<input type="date" id="dcons"></label></div>
+<div class="hint" id="ext">Selecione o arquivo para tentar a leitura automática. Tudo que for lido deve ser conferido.</div>
+<details class="hint"><summary>Texto extraído</summary><pre id="txt" style="white-space:pre-wrap;max-height:200px;overflow:auto"></pre></details></div>
+<div class="box"><h2>2. Dados do cliente e da empresa</h2>
+<div class="g"><label class="f">Nome completo<input id="cn"></label><label class="f">CPF<input id="cpf" inputmode="numeric" placeholder="000.000.000-00"></label>
+<label class="f">Empresa<input id="en"></label><label class="f">CNPJ<input id="cnpj" inputmode="numeric" placeholder="00.000.000/0000-00"></label></div></div>
+<div class="box"><h2>3. Ocorrências financeiras</h2><div id="cats"></div></div>
+<div class="box res" id="sug"></div>
+<div class="box"><h2>4. Decisão e crédito</h2>
+<div class="g"><label class="f">Decisão do responsável<select id="dec"><option value="">Selecione…</option><option>Liberado</option><option>Não liberado</option><option>Pendente de análise</option></select></label>
+<label class="f">Crédito mínimo da empresa (R$)<input id="vmin" inputmode="decimal"></label>
+<label class="f">Valor negociado (R$)<input id="vneg" inputmode="decimal"></label>
+<label class="f">Valor liberado (R$)<input id="vlib" inputmode="decimal"></label></div>
+<label class="f" style="margin-top:12px">Justificativa / observação<textarea id="obs" rows="3"></textarea></label>
+<div class="hint" id="decmsg"></div>
+<div class="row"><button class="b" id="salvar">Salvar análise</button><button class="b s" id="limpar">Limpar formulário</button></div></div>
+</section>
+<section id="hist"><div class="box"><h2>Pesquisar registros</h2>
+<div class="g"><label class="f">Cliente, empresa, CPF, CNPJ ou nº<input id="q"></label>
+<label class="f">Status<select id="fs"><option value="">Todos</option><option>Liberado</option><option>Não liberado</option><option>Pendente de análise</option></select></label>
+<label class="f">Consulta de<input type="date" id="fd1"></label><label class="f">Consulta até<input type="date" id="fd2"></label></div></div>
+<div class="box tw" id="tab"></div></section>
+<section id="users"><div class="box"><h2>Usuários autorizados</h2>
+<div class="g"><label class="f">Nome<input id="un"></label><label class="f">E-mail Google<input id="ue" type="email"></label>
+<label class="f">Perfil<select id="up"><option>Analista</option><option>Administrador</option></select></label></div>
+<div class="row"><button class="b" id="uadd">Adicionar usuário</button></div>
+<div class="hint">Modo demonstração: a autorização real deve ser validada no servidor (Apps Script), conferindo o e-mail do usuário logado contra esta lista.</div></div>
+<div class="box tw" id="utab"></div></section>
+</main>
+<dialog id="dlg"><div id="rcp"></div><div class="row noprint" style="padding:0 24px 20px"><button class="b" id="gen">Gerar PDF e salvar no Drive</button><button class="b s" id="prt">Imprimir</button><button class="b s" id="cls">Fechar</button></div></dialog>
+<div id="toast" role="status"></div>
+<script>
+const CONFIG={APPS_SCRIPT_URL:"",LIMITE:1000}; // com URL preenchida, trocar load()/save() por chamadas ao Apps Script
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl=v=>v==null||v===""||isNaN(v)?"—":Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const num=s=>{s=String(s||"").trim();if(!s)return null;const n=parseFloat(s.replace(/\./g,"").replace(",","."));return isNaN(n)?null:n};
+const brt=iso=>new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"});
+const dBR=d=>d?d.split("-").reverse().join("/"):"—";
+let db={records:[],users:[]},mem=null;
+function load(){try{db=JSON.parse(localStorage.getItem("spc_db"))||db}catch(e){} if(!db.users.length)db.users=[{nome:"Administrador",email:"admin@empresa.com.br",perfil:"Administrador"}]}
+function save(){try{localStorage.setItem("spc_db",JSON.stringify(db));return true}catch(e){toast("Não foi possível salvar no navegador. Registro NÃO foi salvo.");return false}}
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(t._t);t._t=setTimeout(()=>t.style.display="none",4000)}
+const CATS=[["spc","Registro de SPC","limite"],["pend","Pendências Financeiras","limite"],["ccf","Cheques sem fundo (CCF)","ccf"],["prot","Protesto","prot"]];
+$("cats").innerHTML=CATS.map(([k,n])=>`<div class="cat"><h3>${n}<span class="tag t-pe" id="tg_${k}">Não conferido</span></h3>
+<div class="g"><label class="f">Situação<select id="s_${k}"><option value="unk">Não conferido</option><option value="none">Confirmado: sem ocorrências</option><option value="has">Com ocorrências</option></select></label>
+<label class="f">Valor total (R$)<input id="v_${k}" inputmode="decimal"></label><label class="f">Quantidade<input id="q_${k}" type="number" min="0"></label>
+<label class="f">Datas<input id="d_${k}" placeholder="ex.: 03/2025, 11/2025"></label></div><div class="hint" id="h_${k}"></div></div>`).join("");
+function cat(k){return{s:$("s_"+k).value,v:num($("v_"+k).value),q:$("q_"+k).value,d:$("d_"+k).value}}
+function evalCat(k,c){ // retorna [nivel, motivo] nivel: ok|no|pe
+ const n=CATS.find(x=>x[0]===k)[1];
+ if(c.s==="unk")return["pe",`${n}: não conferido.`];
+ if(c.s==="none")return["ok",`${n}: sem ocorrências confirmadas.`];
+ if(k==="ccf")return["pe",`${n}: ocorrências informadas; sem regra definida, avaliação manual.`];
+ if(k==="prot"){if(c.v==null||c.v<=0)return["pe",`${n}: valor ausente ou inconclusivo; análise manual, sem aprovação automática.`];return["no",`${n}: protesto de ${brl(c.v)} impede a liberação.`]}
+ if(c.v==null)return["pe",`${n}: valor total não informado.`];
+ if(c.v>CONFIG.LIMITE)return["no",`${n}: ${brl(c.v)} acima de ${brl(CONFIG.LIMITE)}.`];
+ if(c.v===CONFIG.LIMITE)return["pe",`${n}: exatamente ${brl(c.v)}; decisão conforme política da empresa.`];
+ return["ok",`${n}: ${brl(c.v)} abaixo do limite; pode prosseguir.`]}
+function analyze(){const out=CATS.map(([k])=>{const r=evalCat(k,cat(k));return{k,l:r[0],m:r[1]}});
+ out.forEach(o=>{const t=$("tg_"+o.k);t.className="tag t-"+o.l;t.textContent={ok:"Sem impedimento",no:"Impede liberação",pe:"Conferir"}[o.l]});
+ const unk=CATS.some(([k])=>cat(k).s==="unk"),blk=out.some(o=>o.l==="no"),pen=out.some(o=>o.l==="pe");
+ const sug=blk?"Não liberado":pen?"Pendente de análise":"Liberado";
+ const b=$("sug");b.className="box res "+(blk?"no":pen?"":"ok");
+ b.innerHTML=`<h2>Resultado sugerido: ${sug}</h2><ul>${out.map(o=>`<li>${esc(o.m)}</li>`).join("")}</ul><div class="hint">Cada categoria é avaliada individualmente; uma não compensa a outra. Sugestão não é decisão: o responsável confirma abaixo.</div>`;
+ const d=$("dec").value;let msg="";
+ [...$("dec").options].forEach(o=>{if(o.value==="Liberado"||o.text==="Liberado")o.disabled=blk||unk});
+ if(d==="Liberado"&&(blk||unk)){$("dec").value="";msg="“Liberado” bloqueado: há impedimento ou categoria não conferida."}
+ else if(d==="Liberado"&&pen)msg="Há itens para avaliação manual (CCF ou valor = limite). Registre a justificativa.";
+ $("decmsg").textContent=msg;return{out,sug,blk,pen,unk}}
+document.addEventListener("input",e=>{if(e.target.closest("#cats")||e.target.id==="dec")analyze()});
+$("nav").onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b===e.target));document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id===t));if(t==="hist")renderHist();if(t==="users")renderUsers()};
+// leitura de arquivo
+function inject(src){return new Promise(r=>{const s=document.createElement("script");s.src=src;s.onload=()=>r(true);s.onerror=()=>r(false);document.head.appendChild(s)})}
+$("arq").onchange=async e=>{const f=e.target.files[0];if(!f)return;const st=$("ext");st.textContent="Lendo arquivo…";let text="";
+ try{if(f.type==="application/pdf"){if(!window.pdfjsLib&&!(await inject("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js")))throw 0;
+  pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;for(let i=1;i<=pdf.numPages;i++){const p=await pdf.getPage(i);text+=(await p.getTextContent()).items.map(x=>x.str).join(" ")+"\n"}}
+  else{if(!window.Tesseract&&!(await inject("https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.3/tesseract.min.js")))throw 0;text=(await Tesseract.recognize(f,"por")).data.text}}
+ catch(err){st.textContent="Leitura automática indisponível. Preencha os campos manualmente.";return}
+ $("txt").textContent=text;if(text.trim().length<20){st.textContent="Pouco texto encontrado (PDF digitalizado?). Preencha manualmente.";return}
+ const cpf=text.match(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/),cnpj=text.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/),nm=text.match(/nome[:\s]+([A-ZÀ-Ú][^\n\d]{4,60})/i);
+ if(cpf&&!$("cpf").value)$("cpf").value=cpf[0];if(cnpj&&!$("cnpj").value)$("cnpj").value=cnpj[0];if(nm&&!$("cn").value)$("cn").value=nm[1].trim();
+ const kw={spc:/spc/i,pend:/pend[êe]ncia/i,ccf:/ccf|cheque/i,prot:/protesto/i};
+ CATS.forEach(([k])=>{const L=text.split(/\n|(?<=\d{2}) {2,}/).filter(l=>kw[k].test(l)&&/R\$\s*[\d.,]+/.test(l)).slice(0,2);$("h_"+k).textContent=L.length?"Trecho lido (confirme): "+L.join(" | ").slice(0,220):"Nada identificado automaticamente; confira o documento."});
+ st.textContent="Leitura concluída. Campos preenchidos podem conter erros: confira cada um. Categorias nunca são marcadas como “sem ocorrências” automaticamente."};
+// ===== persistência e fluxo (servidor Apps Script ou modo demonstração) =====
+const SRV=!!(window.google&&google.script&&google.script.run);
+const call=(op,p)=>new Promise((ok,ko)=>google.script.run.withSuccessHandler(ok).withFailureHandler(e=>ko(new Error((e&&e.message)||String(e)))).api(op,p||{}));
+const novaChave=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
+let chave=novaChave(),ME={email:"",perfil:"Administrador"};
+const toB64=f=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=ko;r.readAsDataURL(f)});
+const dl=(b64,n)=>{const a=document.createElement("a");a.href="data:application/pdf;base64,"+b64;a.download=n;a.click()};
+async function sync(){if(SRV)db.records=await call("listar")}
+function nextId(){const d=new Date().toLocaleDateString("sv-SE",{timeZone:"America/Sao_Paulo"}).replace(/-/g,"");const n=db.records.filter(r=>r.id.includes(d)).length+1;return`SPC-${d}-${String(n).padStart(4,"0")}`}
+$("salvar").onclick=async()=>{const a=analyze(),dec=$("dec").value,resp=$("resp").value.trim(),f=$("arq").files[0];
+ if(!resp)return toast("Informe o responsável pela análise.");if(!$("dcons").value)return toast("Informe a data da consulta SPC.");
+ if(!$("cn").value.trim()||!$("cpf").value.trim())return toast("Informe nome e CPF do cliente.");if(!dec)return toast("Selecione a decisão.");
+ if(dec==="Liberado"&&num($("vlib").value)==null)return toast("Informe o valor liberado.");
+ if(dec==="Liberado"&&a.pen&&!$("obs").value.trim())return toast("Registre a justificativa para liberar com itens em avaliação manual.");
+ if(a.unk&&dec!=="Pendente de análise")return toast("Há categoria não conferida: a análise só pode ficar como pendente.");
+ if(SRV&&!f)return toast("Anexe a pesquisa original.");if(f&&f.size>10485760)return toast("Arquivo acima de 10 MB.");
+ const btn=$("salvar");btn.disabled=true;
+ const base={consulta:$("dcons").value,cliente:$("cn").value.trim(),cpf:$("cpf").value.trim(),empresa:$("en").value.trim(),cnpj:$("cnpj").value.trim(),
+  cats:Object.fromEntries(CATS.map(([k])=>[k,cat(k)])),decisao:dec,vmin:num($("vmin").value),vneg:num($("vneg").value),vlib:dec==="Liberado"?num($("vlib").value):null,obs:$("obs").value.trim()};
+ const go=async dup=>{let id;
+  if(SRV){id=(await call("salvar",{...base,chave,confirmarDuplicado:dup,arquivo:{nome:f.name,mime:f.type||"application/octet-stream",b64:await toB64(f)}})).id}
+  else{const now=new Date().toISOString();id=nextId();db.records.unshift({id,cadastro:now,resp,arquivo:f?f.name:"(não anexado)",...base,motivos:a.out.map(o=>o.m),sugerido:a.sug,emissoes:[],log:[{em:now,por:resp,acao:"Cadastro",det:"Decisão: "+dec}]});if(!save()){db.records.shift();throw new Error("armazenamento local indisponível")}}
+  chave=novaChave();await sync();limpar();toast("Análise "+id+" salva.");await emitir(id)};
+ try{await go(false)}catch(e){
+  if(/^DUP/.test(e.message)&&confirm(e.message.replace(/^DUP:\s*/,"")+"\nSalvar mesmo assim?")){try{await go(true)}catch(e2){toast("Falha ao salvar: "+e2.message+" Nada foi perdido; tente novamente.")}}
+  else toast("Falha ao salvar: "+e.message+(/^DUP/.test(e.message)?"":" Tente novamente."))}
+ finally{btn.disabled=false}};
+function limpar(){document.querySelectorAll("#nova input,#nova select,#nova textarea").forEach(e=>{if(e.id!=="resp")e.value=e.tagName==="SELECT"?e.options[0].value:""});$("txt").textContent="";$("ext").textContent="Selecione o arquivo para tentar a leitura automática. Tudo que for lido deve ser conferido.";CATS.forEach(([k])=>$("h_"+k).textContent="");analyze()}
+$("limpar").onclick=limpar;
+// comprovante
+async function emitir(id){try{
+  if(SRV){const x=await call("emitir",{id});dl(x.b64,x.nome);await sync();toast("PDF gerado e salvo no Drive: "+x.nome)}
+  else{const r=db.records.find(x=>x.id===id),now=new Date().toISOString(),p=$("resp").value.trim()||r.resp;r.emissoes.push({n:r.emissoes.length+1,em:now,por:p});r.log.push({em:now,por:p,acao:"Comprovante gerado",det:"Emissão nº "+r.emissoes.length+" (demonstração: use Imprimir para salvar o PDF)"});save()}
+ }catch(e){toast("Falha ao gerar o comprovante: "+e.message+" Tente novamente.")}openReceipt(id)}
+function openReceipt(id){const r=db.records.find(x=>x.id===id);if(!r)return;const E=r.emissoes||[],u=E[E.length-1];
+ const line=(n,k)=>{const c=r.cats[k];const st=c.s==="none"?"Sem ocorrências (confirmado)":c.s==="unk"?"Não conferido":`Com ocorrências — ${brl(c.v)}${c.q?`, qtd. ${esc(c.q)}`:""}${c.d?`, datas: ${esc(c.d)}`:""}`;return`<tr><td>${n}</td><td>${st}</td></tr>`};
+ $("rcp").innerHTML=`<h2>Comprovante de Análise de Crédito</h2><table>
+ <tr><td>Nº do registro</td><td><b>${esc(r.id)}</b></td></tr><tr><td>Cliente / CPF</td><td>${esc(r.cliente)} — ${esc(r.cpf)}</td></tr>
+ <tr><td>Empresa / CNPJ</td><td>${esc(r.empresa)||"—"} — ${esc(r.cnpj)||"—"}</td></tr><tr><td>Data da consulta SPC</td><td>${dBR(r.consulta)}</td></tr>
+ <tr><td>Cadastro</td><td>${brt(r.cadastro)} (Brasília)</td></tr><tr><td>Última geração do PDF</td><td>${u?brt(u.em)+" (emissão nº "+u.n+")":"Ainda não gerado"}</td></tr>
+ <tr><td>Impressão</td><td>Registrada só quando o diálogo de impressão é acionado; não confirma impressão física.</td></tr>
+ <tr><td>Responsável</td><td>${esc(r.resp)}</td></tr>${line("Registro de SPC","spc")}${line("Pendências Financeiras","pend")}${line("CCF (avaliação manual)","ccf")}${line("Protesto","prot")}
+ <tr><td>Resultado final</td><td><b>${esc(r.decisao)}</b></td></tr><tr><td>Motivos</td><td>${r.motivos.map(esc).join("<br>")}${r.obs?"<br><i>Obs.: "+esc(r.obs)+"</i>":""}</td></tr>
+ <tr><td>Crédito liberado</td><td>${r.decisao==="Liberado"?brl(r.vlib):"Não aplicável"}</td></tr><tr><td>Pesquisa original</td><td>${r.arquivoUrl?`<a href="${esc(r.arquivoUrl)}" target="_blank" rel="noopener">${esc(r.arquivo)}</a>`:esc(r.arquivo)}</td></tr></table>
+ <p class="hint">Emissões anteriores: ${E.map(e=>`nº ${e.n} em ${brt(e.em)}`+(e.url?` (<a href="${esc(e.url)}" target="_blank" rel="noopener">Drive</a>)`:"")).join("; ")||"nenhuma"}</p>`;
+ $("dlg").dataset.id=id;if(!$("dlg").open)$("dlg").showModal()}
+$("gen").onclick=()=>emitir($("dlg").dataset.id);
+$("prt").onclick=async()=>{const id=$("dlg").dataset.id,r=db.records.find(x=>x.id===id);
+ try{if(SRV)await call("impressao",{id});else if(r){r.log.push({em:new Date().toISOString(),por:$("resp").value.trim()||r.resp,acao:"Impressão acionada",det:"Diálogo de impressão aberto"});save()}}catch(e){}
+ window.print()};
+$("cls").onclick=()=>$("dlg").close();
+// histórico
+async function renderHist(skip){if(!skip){try{await sync()}catch(e){toast("Falha ao carregar histórico: "+e.message)}}
+ const q=$("q").value.toLowerCase(),s=$("fs").value,a=$("fd1").value,b=$("fd2").value;
+ const L=db.records.filter(r=>(!q||[r.cliente,r.empresa,r.cpf,r.cnpj,r.id].join(" ").toLowerCase().includes(q))&&(!s||r.decisao===s)&&(!a||r.consulta>=a)&&(!b||r.consulta<=b));
+ $("tab").innerHTML=L.length?`<table><tr><th>Nº</th><th>Cliente</th><th>Empresa</th><th>Consulta</th><th>Resultado</th><th>Ações</th></tr>${L.map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.cliente)}</td><td>${esc(r.empresa)||"—"}</td><td>${dBR(r.consulta)}</td>
+ <td><span class="tag ${r.decisao==="Liberado"?"t-ok":r.decisao==="Não liberado"?"t-no":"t-pe"}">${esc(r.decisao)}</span></td><td><button class="b s" data-r="${r.id}">Comprovante</button> <button class="b s" data-l="${r.id}">Histórico</button></td></tr>`).join("")}</table>`:`<div class="empty">Nenhum registro encontrado. Salve uma análise ou ajuste os filtros.</div>`}
+["q","fs","fd1","fd2"].forEach(i=>$(i).oninput=()=>renderHist(1));
+$("tab").onclick=e=>{if(e.target.dataset.r)openReceipt(e.target.dataset.r);if(e.target.dataset.l){const r=db.records.find(x=>x.id===e.target.dataset.l);alert(r.log.map(l=>`${brt(l.em)} — ${l.por}: ${l.acao} (${l.det})`).join("\n"))}};
+async function renderUsers(){if(SRV){try{db.users=await call("usuarios")}catch(e){return toast(e.message)}}
+ $("utab").innerHTML=`<table><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th></th></tr>${db.users.map(u=>`<tr><td>${esc(u.nome)}</td><td>${esc(u.email)}</td><td>${esc(u.perfil)}</td><td><button class="b s" data-u="${esc(u.email)}">Revogar</button></td></tr>`).join("")}</table>`}
+$("uadd").onclick=async()=>{const n=$("un").value.trim(),e=$("ue").value.trim();if(!n||!e)return toast("Informe nome e e-mail.");
+ try{if(SRV)await call("uadd",{nome:n,email:e,perfil:$("up").value});else{if(db.users.some(u=>u.email.toLowerCase()===e.toLowerCase()))return toast("E-mail já cadastrado.");db.users.push({nome:n,email:e,perfil:$("up").value});save()}
+  $("un").value=$("ue").value="";renderUsers()}catch(x){toast(x.message)}};
+$("utab").onclick=async e=>{const m=e.target.dataset.u;if(!m)return;
+ try{if(SRV)await call("udel",{email:m});else{if(db.users.length<2)return toast("Mantenha ao menos um usuário.");db.users=db.users.filter(u=>u.email!==m);save()}renderUsers()}catch(x){toast(x.message)}};
+(async()=>{load();
+ if(SRV){try{ME=await call("me")}catch(e){document.body.innerHTML='<main><div class="box res no"><h2>Acesso negado</h2><p>'+esc(e.message)+'</p></div></main>';return}
+  $("resp").value=ME.email;$("resp").readOnly=true;if(ME.perfil!=="Administrador")document.querySelector("[data-t=users]").style.display="none"}
+ else{document.querySelector("header h1").textContent+=" (demonstração: dados só neste navegador)";try{$("resp").value=localStorage.getItem("spc_resp")||""}catch(e){}$("resp").onchange=()=>{try{localStorage.setItem("spc_resp",$("resp").value)}catch(e){}}}
+ analyze()})();
+</script>
+</body>
+</html>
